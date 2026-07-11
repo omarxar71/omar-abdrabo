@@ -1,5 +1,5 @@
 {
-  "layout": "gift-guide",
+  "layout": "theme.gift-guide",
   "sections": {
     "gift_header": {
       "type": "gift-guide-header",
