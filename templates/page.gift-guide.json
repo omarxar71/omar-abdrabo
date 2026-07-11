@@ -1,0 +1,99 @@
+{
+  "layout": "gift-guide",
+  "sections": {
+    "gift_header": {
+      "type": "gift-guide-header",
+      "settings": {
+        "logo_text": "Tisso Vison",
+        "promo_text": "Find the ideal gift for your loved ones.",
+        "button_text": "Choose gift",
+        "button_link": "",
+        "show_search": true
+      }
+    },
+    "gift_banner": {
+      "type": "banner",
+      "settings": {
+        "background_color": "#ffffff",
+        "heading": "The Gift Guide",
+        "description": "<p>Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gift to delight your loved ones this holiday season.</p>",
+        "button_text": "Shop now",
+        "button_link": "",
+        "bottom_bar_text": "Sustainable, ethically made activewear"
+      }
+    },
+    "gift_products": {
+      "type": "gift-product-grid",
+      "blocks": {
+        "product_1": { "type": "product", "settings": {} },
+        "product_2": { "type": "product", "settings": {} },
+        "product_3": { "type": "product", "settings": {} },
+        "product_4": { "type": "product", "settings": {} },
+        "product_5": { "type": "product", "settings": {} },
+        "product_6": { "type": "product", "settings": {} }
+      },
+      "block_order": [
+        "product_1",
+        "product_2",
+        "product_3",
+        "product_4",
+        "product_5",
+        "product_6"
+      ],
+      "settings": {}
+    },
+    "gift_gallery": {
+      "type": "gift-gallery",
+      "settings": {
+        "heading": "Tisso vison in the wild"
+      },
+      "blocks": {
+        "image_1": { "type": "image", "settings": {} },
+        "image_2": { "type": "image", "settings": {} },
+        "image_3": { "type": "image", "settings": {} },
+        "image_4": { "type": "image", "settings": {} },
+        "image_5": { "type": "image", "settings": {} },
+        "image_6": { "type": "image", "settings": {} }
+      },
+      "block_order": [
+        "image_1",
+        "image_2",
+        "image_3",
+        "image_4",
+        "image_5",
+        "image_6"
+      ]
+    },
+    "gift_lifestyle": {
+      "type": "gift-lifestyle-grid",
+      "blocks": {
+        "image_1": { "type": "image", "settings": {} },
+        "image_2": { "type": "image", "settings": {} },
+        "image_3": { "type": "image", "settings": {} },
+        "image_4": { "type": "image", "settings": {} },
+        "image_5": { "type": "image", "settings": {} },
+        "image_6": { "type": "image", "settings": {} },
+        "image_7": { "type": "image", "settings": {} },
+        "image_8": { "type": "image", "settings": {} }
+      },
+      "block_order": [
+        "image_1",
+        "image_2",
+        "image_3",
+        "image_4",
+        "image_5",
+        "image_6",
+        "image_7",
+        "image_8"
+      ],
+      "settings": {}
+    }
+  },
+  "order": [
+    "gift_header",
+    "gift_banner",
+    "gift_products",
+    "gift_gallery",
+    "gift_lifestyle"
+  ]
+}

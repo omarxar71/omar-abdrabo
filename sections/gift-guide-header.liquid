@@ -1,0 +1,450 @@
+{% comment %}
+  Gift Guide header - TISSO VISON branding, promo bar, mobile drawer
+{% endcomment %}
+
+<header class="gift-header" id="GiftHeader-{{ section.id }}" data-gift-header>
+  <div class="gift-header__bar">
+    <button
+      type="button"
+      class="gift-header__menu-btn gift-header__menu-btn--open"
+      aria-label="Open menu"
+      aria-expanded="false"
+      aria-controls="GiftHeaderDrawer-{{ section.id }}"
+      data-gift-menu-open
+    >
+      <svg width="20" height="14" viewBox="0 0 20 14" fill="none" aria-hidden="true">
+        <path d="M0 1h20M0 7h20M0 13h20" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+    </button>
+
+    <a href="{{ section.settings.logo_link | default: routes.root_url }}" class="gift-header__logo">
+      {{ section.settings.logo_text }}
+    </a>
+
+    <p class="gift-header__promo">{{ section.settings.promo_text }}</p>
+
+    <div class="gift-header__actions">
+      {% if section.settings.show_search %}
+        <button type="button" class="gift-header__icon-btn" aria-label="Search" data-gift-search-open>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M12 12l4.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+      {% endif %}
+
+      {% if shop.customer_accounts_enabled %}
+        <a href="{{ routes.account_url }}" class="gift-header__icon-btn" aria-label="Account">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <circle cx="9" cy="6" r="3.5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M2.5 16.5c0-3.59 2.91-6.5 6.5-6.5s6.5 2.91 6.5 6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </a>
+      {% endif %}
+
+      <a href="{{ routes.cart_url }}" class="gift-header__icon-btn gift-header__cart" aria-label="Cart">
+        <svg width="18" height="20" viewBox="0 0 18 20" fill="none" aria-hidden="true">
+          <path d="M1 1h2.5l1.2 11.4a1.5 1.5 0 001.5 1.35h9.6a1.5 1.5 0 001.5-1.35L17.5 4H4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        {% if cart.item_count > 0 %}
+          <span class="gift-header__cart-count">{{ cart.item_count }}</span>
+        {% endif %}
+      </a>
+
+      {% if section.settings.button_text != blank %}
+        <a href="{{ section.settings.button_link }}" class="gift-header__cta">
+          {{ section.settings.button_text | upcase }}
+          <span aria-hidden="true">→</span>
+        </a>
+      {% endif %}
+    </div>
+
+    <a href="{{ routes.cart_url }}" class="gift-header__cart-mobile" aria-label="Cart">
+      <svg width="18" height="20" viewBox="0 0 18 20" fill="none" aria-hidden="true">
+        <path d="M1 1h2.5l1.2 11.4a1.5 1.5 0 001.5 1.35h9.6a1.5 1.5 0 001.5-1.35L17.5 4H4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      {% if cart.item_count > 0 %}
+        <span class="gift-header__cart-count">{{ cart.item_count }}</span>
+      {% endif %}
+    </a>
+  </div>
+
+  <div
+    class="gift-header__drawer"
+    id="GiftHeaderDrawer-{{ section.id }}"
+    hidden
+    data-gift-drawer
+  >
+    <div class="gift-header__drawer-overlay" data-gift-drawer-close></div>
+    <div class="gift-header__drawer-panel">
+      <div class="gift-header__drawer-top">
+        <button
+          type="button"
+          class="gift-header__menu-btn gift-header__menu-btn--close"
+          aria-label="Close menu"
+          data-gift-drawer-close
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M1 1l14 14M15 1L1 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <span class="gift-header__drawer-logo">{{ section.settings.logo_text }}</span>
+      </div>
+
+      <div class="gift-header__drawer-body">
+        <p class="gift-header__drawer-promo">{{ section.settings.promo_text }}</p>
+
+        {% if section.settings.button_text != blank %}
+          <a href="{{ section.settings.button_link }}" class="gift-header__drawer-cta">
+            {{ section.settings.button_text | upcase }}
+            <span aria-hidden="true">→</span>
+          </a>
+        {% endif %}
+
+        {% if section.settings.menu != blank %}
+          <nav class="gift-header__drawer-nav" aria-label="Main">
+            <ul>
+              {% for link in section.settings.menu.links %}
+                <li>
+                  <a href="{{ link.url }}">{{ link.title }}</a>
+                </li>
+              {% endfor %}
+            </ul>
+          </nav>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+  (() => {
+    const header = document.querySelector('[data-gift-header]');
+    if (!header) return;
+
+    const drawer = header.querySelector('[data-gift-drawer]');
+    const openBtn = header.querySelector('[data-gift-menu-open]');
+    const closeEls = header.querySelectorAll('[data-gift-drawer-close]');
+    const searchBtn = header.querySelector('[data-gift-search-open]');
+
+    const openDrawer = () => {
+      drawer.hidden = false;
+      document.body.style.overflow = 'hidden';
+      openBtn?.setAttribute('aria-expanded', 'true');
+    };
+
+    const closeDrawer = () => {
+      drawer.hidden = true;
+      document.body.style.overflow = '';
+      openBtn?.setAttribute('aria-expanded', 'false');
+    };
+
+    openBtn?.addEventListener('click', openDrawer);
+    closeEls.forEach((el) => el.addEventListener('click', closeDrawer));
+
+    searchBtn?.addEventListener('click', () => {
+      const themeSearch = document.querySelector('[data-search-trigger], .search-action button, header-component .search-modal__trigger');
+      if (themeSearch) themeSearch.click();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !drawer.hidden) closeDrawer();
+    });
+  })();
+</script>
+
+{% stylesheet %}
+  .gift-header {
+    --gift-yellow: #fff251;
+    --gift-gray: #f2f2f2;
+    --gift-dark: #1a1a1a;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #fff;
+  }
+
+  .gift-header__bar {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+  }
+
+  .gift-header__menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--gift-dark);
+    cursor: pointer;
+  }
+
+  .gift-header__menu-btn--close {
+    justify-self: start;
+  }
+
+  .gift-header__logo {
+    grid-column: 2;
+    justify-self: center;
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-decoration: none;
+    color: var(--gift-dark);
+    text-transform: uppercase;
+  }
+
+  .gift-header__promo,
+  .gift-header__actions,
+  .gift-header__cart-mobile {
+    display: none;
+  }
+
+  .gift-header__cart-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    grid-column: 3;
+    position: relative;
+    color: var(--gift-dark);
+    padding: 6px;
+    text-decoration: none;
+  }
+
+  .gift-header__cart-count {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 50%;
+    background: var(--gift-dark);
+    color: #fff;
+    font-size: 0.625rem;
+    font-weight: 600;
+    line-height: 16px;
+    text-align: center;
+  }
+
+  .gift-header__drawer[hidden] {
+    display: none;
+  }
+
+  .gift-header__drawer:not([hidden]) {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+  }
+
+  .gift-header__drawer-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgb(0 0 0 / 40%);
+  }
+
+  .gift-header__drawer-panel {
+    position: relative;
+    width: min(100%, 400px);
+    height: 100%;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    animation: gift-drawer-in 0.25s ease;
+  }
+
+  @keyframes gift-drawer-in {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+  }
+
+  .gift-header__drawer-top {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .gift-header__drawer-logo {
+    grid-column: 2;
+    text-align: center;
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .gift-header__drawer-body {
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .gift-header__drawer-promo {
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  .gift-header__drawer-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 20px;
+    background: var(--gift-yellow);
+    color: var(--gift-dark);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+  }
+
+  .gift-header__drawer-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .gift-header__drawer-nav a {
+    display: block;
+    padding: 12px 0;
+    font-size: 0.9375rem;
+    color: var(--gift-dark);
+    text-decoration: none;
+    border-bottom: 1px solid #eee;
+  }
+
+  @media screen and (min-width: 750px) {
+    .gift-header__bar {
+      grid-template-columns: auto 1fr auto;
+      padding: 14px 40px;
+      gap: 24px;
+      background: var(--gift-gray);
+      border-bottom-color: #e5e5e5;
+    }
+
+    .gift-header__menu-btn--open,
+    .gift-header__cart-mobile {
+      display: none;
+    }
+
+    .gift-header__logo {
+      grid-column: 1;
+      justify-self: start;
+    }
+
+    .gift-header__promo {
+      display: block;
+      margin: 0;
+      text-align: center;
+      font-size: 0.875rem;
+      line-height: 1.4;
+    }
+
+    .gift-header__actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      grid-column: 3;
+    }
+
+    .gift-header__icon-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: var(--gift-dark);
+      text-decoration: none;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .gift-header__cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 16px;
+      background: var(--gift-yellow);
+      color: var(--gift-dark);
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+  }
+
+  @media screen and (min-width: 990px) {
+    .gift-header__bar {
+      padding: 14px 60px;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Gift Guide Header",
+  "settings": [
+    {
+      "type": "text",
+      "id": "logo_text",
+      "label": "Logo text",
+      "default": "Tisso Vison"
+    },
+    {
+      "type": "url",
+      "id": "logo_link",
+      "label": "Logo link"
+    },
+    {
+      "type": "text",
+      "id": "promo_text",
+      "label": "Promo text",
+      "default": "Find the ideal gift for your loved ones."
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button text",
+      "default": "Choose gift"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Mobile menu"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "label": "Show search icon",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "Gift Guide Header"
+    }
+  ]
+}
+{% endschema %}

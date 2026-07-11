@@ -1,0 +1,132 @@
+{% comment %}
+  Gift Guide lifestyle grid - 8 square images, 4×2 desktop layout
+{% endcomment %}
+
+<div class="gift-lifestyle-grid" id="GiftLifestyleGrid-{{ section.id }}">
+  <div class="gift-lifestyle-grid__inner">
+    {% for block in section.blocks %}
+      <div class="gift-lifestyle-grid__item" {{ block.shopify_attributes }}>
+        {% if block.settings.image %}
+          {{
+            block.settings.image
+            | image_url: width: 800
+            | image_tag: loading: 'lazy', widths: '400,600,800', sizes: '(min-width: 990px) 25vw, 50vw', class: 'gift-lifestyle-grid__image'
+          }}
+        {% else %}
+          {{ 'lifestyle-2' | placeholder_svg_tag: 'gift-lifestyle-grid__image gift-lifestyle-grid__placeholder' }}
+        {% endif %}
+
+        {% if block.settings.link != blank %}
+          <a href="{{ block.settings.link }}" class="gift-lifestyle-grid__link" aria-label="{{ block.settings.link_label | default: 'View image' }}"></a>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% stylesheet %}
+  .gift-lifestyle-grid {
+    padding: 0 16px 56px;
+    background: #fff;
+  }
+
+  .gift-lifestyle-grid__inner {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .gift-lifestyle-grid__item {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: #f5f5f5;
+  }
+
+  .gift-lifestyle-grid__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+
+  .gift-lifestyle-grid__item:hover .gift-lifestyle-grid__image {
+    transform: scale(1.03);
+  }
+
+  .gift-lifestyle-grid__placeholder {
+    background: #eee;
+  }
+
+  .gift-lifestyle-grid__link {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  @media screen and (min-width: 750px) {
+    .gift-lifestyle-grid {
+      padding: 0 40px 64px;
+    }
+
+    .gift-lifestyle-grid__inner {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+  }
+
+  @media screen and (min-width: 990px) {
+    .gift-lifestyle-grid {
+      padding-left: 60px;
+      padding-right: 60px;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Gift Lifestyle Grid",
+  "settings": [],
+  "blocks": [
+    {
+      "type": "image",
+      "name": "Image",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        },
+        {
+          "type": "text",
+          "id": "link_label",
+          "label": "Link label"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Gift Lifestyle Grid",
+      "blocks": [
+        { "type": "image" },
+        { "type": "image" },
+        { "type": "image" },
+        { "type": "image" },
+        { "type": "image" },
+        { "type": "image" },
+        { "type": "image" },
+        { "type": "image" }
+      ]
+    }
+  ]
+}
+{% endschema %}
