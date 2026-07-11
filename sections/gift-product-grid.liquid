@@ -1,5 +1,7 @@
 {% comment %}
-  Gift Guide product grid - cards with variant pickers and add to cart
+  Gift Guide product grid — image + hotspot grid with popup modals and Ajax add-to-cart.
+  Tasks: grid → image+hotspot only; popup/modal per block; Ajax ATC with Black+Medium auto-add;
+  variant sync; cart count update; theme cart drawer open; mobile overlay.
 {% endcomment %}
 
 {% liquid
@@ -15,220 +17,587 @@
       {% assign product = block.settings.product %}
       {% assign block_index = forloop.index0 %}
 
+      {%- comment -%} ── GRID CARD: image + "+" hotspot only ── {%- endcomment -%}
       <div class="gift-product-card" {{ block.shopify_attributes }}>
-        <button type="button" class="gift-product-card__close" aria-label="Close">
-          <span aria-hidden="true">×</span>
-        </button>
-
-        {% if product != blank %}
-          <div class="gift-product-card__media">
+        <div class="gift-product-card__media">
+          {% if product != blank %}
             {% if product.featured_image %}
               {{
                 product.featured_image
                 | image_url: width: 600
-                | image_tag: loading: 'lazy', widths: '300,400,600', sizes: '(min-width: 750px) 33vw, 50vw'
+                | image_tag: loading: 'lazy', widths: '300,400,600', sizes: '(min-width: 750px) 33vw, 50vw', class: 'gift-product-card__img'
               }}
             {% else %}
               {{ 'product-apparel-2' | placeholder_svg_tag: 'gift-product-card__placeholder' }}
             {% endif %}
-          </div>
-
-          <div class="gift-product-card__body">
-            <div class="gift-product-card__header">
-              <h3 class="gift-product-card__title">{{ product.title }}</h3>
-              <p class="gift-product-card__price">{{ product.price | money }}</p>
-            </div>
-
-            {% if block.settings.description != blank %}
-              <p class="gift-product-card__description">{{ block.settings.description }}</p>
-            {% elsif product.description != blank %}
-              <p class="gift-product-card__description">{{ product.description | strip_html | truncate: 120 }}</p>
-            {% else %}
-              <p class="gift-product-card__description">{{ placeholder_description }}</p>
-            {% endif %}
-
-            {% form 'product', product, class: 'gift-product-card__form', data-product-id: product.id %}
-              {% assign color_option = nil %}
-              {% assign size_option = nil %}
-
-              {% for option in product.options_with_values %}
-                {% assign option_name_downcase = option.name | downcase %}
-                {% if option_name_downcase == 'color' or option_name_downcase == 'colour' %}
-                  {% assign color_option = option %}
-                {% elsif option_name_downcase == 'size' %}
-                  {% assign size_option = option %}
-                {% endif %}
-              {% endfor %}
-
-              {% if color_option %}
-                <fieldset class="gift-product-card__option">
-                  <legend class="gift-product-card__option-label">{{ color_option.name }}</legend>
-                  <div class="gift-product-card__color-swatches">
-                    {% for value in color_option.values %}
-                      {% assign swatch_color = value | downcase %}
-                      <label class="gift-product-card__color-label">
-                        <input
-                          type="radio"
-                          name="options[{{ color_option.name | escape }}]"
-                          value="{{ value | escape }}"
-                          {% if forloop.first %}checked{% endif %}
-                          data-option-index="{{ color_option.position | minus: 1 }}"
-                        >
-                        <span
-                          class="gift-product-card__color-btn"
-                          style="--swatch-color: {{ swatch_color }};"
-                        >
-                          {{ value }}
-                        </span>
-                      </label>
-                    {% endfor %}
-                  </div>
-                </fieldset>
-              {% endif %}
-
-              {% if size_option %}
-                <div class="gift-product-card__option">
-                  <label class="gift-product-card__option-label" for="Size-{{ block.id }}">
-                    {{ size_option.name }}
-                  </label>
-                  <select
-                    id="Size-{{ block.id }}"
-                    name="options[{{ size_option.name | escape }}]"
-                    class="gift-product-card__size-select"
-                    data-option-index="{{ size_option.position | minus: 1 }}"
-                  >
-                    <option value="" disabled selected>Choose your size</option>
-                    {% for value in size_option.values %}
-                      <option value="{{ value | escape }}">{{ value }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-              {% endif %}
-
-              <select name="id" class="gift-product-card__variant-select visually-hidden" aria-hidden="true">
-                {% for variant in product.variants %}
-                  <option
-                    value="{{ variant.id }}"
-                    {% if variant.available == false %}disabled{% endif %}
-                    data-options="{{ variant.options | join: ' / ' | escape }}"
-                  >
-                    {{ variant.title }}
-                  </option>
-                {% endfor %}
-              </select>
-
-              <button type="submit" class="gift-product-card__add-btn" {% unless product.available %}disabled{% endunless %}>
-                ADD TO CART
-                <span class="gift-product-card__arrow" aria-hidden="true">→</span>
-              </button>
-            {% endform %}
-          </div>
-        {% else %}
-          {% assign demo_colors = placeholder_colors[block_index] | default: 'White,Black' | split: ',' %}
-          {% assign demo_default = placeholder_default_color[block_index] | default: '0' | plus: 0 %}
-
-          <div class="gift-product-card__media">
+          {% else %}
             {{ 'product-apparel-2' | placeholder_svg_tag: 'gift-product-card__placeholder' }}
-          </div>
-          <div class="gift-product-card__body">
-            <div class="gift-product-card__header">
-              <h3 class="gift-product-card__title">{{ placeholder_titles[block_index] | default: 'Product title' }}</h3>
-              <p class="gift-product-card__price">{{ 98000 | money }}</p>
-            </div>
-            <p class="gift-product-card__description">
-              {% if block.settings.description != blank %}
-                {{ block.settings.description }}
-              {% else %}
-                {{ placeholder_description }}
-              {% endif %}
-            </p>
+          {% endif %}
+        </div>
 
-            <fieldset class="gift-product-card__option">
-              <legend class="gift-product-card__option-label">Color</legend>
-              <div class="gift-product-card__color-swatches">
-                {% for color in demo_colors %}
-                  {% assign swatch_color = color | downcase %}
-                  <label class="gift-product-card__color-label">
-                    <input
-                      type="radio"
-                      name="demo-color-{{ block.id }}"
-                      value="{{ color }}"
-                      {% if forloop.index0 == demo_default %}checked{% endif %}
-                      disabled
-                    >
-                    <span
-                      class="gift-product-card__color-btn"
-                      style="--swatch-color: {{ swatch_color }};"
-                    >
-                      {{ color }}
-                    </span>
-                  </label>
-                {% endfor %}
-              </div>
-            </fieldset>
-
-            <div class="gift-product-card__option">
-              <label class="gift-product-card__option-label" for="DemoSize-{{ block.id }}">Size</label>
-              <select id="DemoSize-{{ block.id }}" class="gift-product-card__size-select" disabled>
-                <option selected>Choose your size</option>
-              </select>
-            </div>
-
-            <button type="button" class="gift-product-card__add-btn" disabled>
-              ADD TO CART
-              <span class="gift-product-card__arrow" aria-hidden="true">→</span>
-            </button>
-          </div>
-        {% endif %}
+        <button
+          type="button"
+          class="gift-product-card__hotspot"
+          aria-label="View {% if product != blank %}{{ product.title }}{% else %}{{ placeholder_titles[block_index] | default: 'product' }}{% endif %}"
+          data-open-popup="{{ block.id }}"
+        >
+          <span aria-hidden="true">+</span>
+        </button>
       </div>
+
+      {%- comment -%} ── POPUP MODAL: hidden by default ── {%- endcomment -%}
+      <div
+        class="gift-popup"
+        id="GiftProductPopup-{{ block.id }}"
+        hidden
+        aria-modal="true"
+        role="dialog"
+        aria-label="{% if product != blank %}{{ product.title | escape }}{% else %}{{ placeholder_titles[block_index] | default: 'Product' | escape }}{% endif %}"
+        data-popup-id="{{ block.id }}"
+      >
+        <div class="gift-popup__backdrop" data-close-popup="{{ block.id }}"></div>
+        <div class="gift-popup__panel">
+          <button
+            type="button"
+            class="gift-popup__close"
+            aria-label="Close"
+            data-close-popup="{{ block.id }}"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M1 1l14 14M15 1L1 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+
+          {% if product != blank %}
+            {%- comment -%} Real product popup {%- endcomment -%}
+            <div class="gift-popup__media">
+              {% if product.featured_image %}
+                {{
+                  product.featured_image
+                  | image_url: width: 800
+                  | image_tag: loading: 'lazy', widths: '400,600,800', sizes: '(min-width: 750px) 50vw, 100vw', class: 'gift-popup__img'
+                }}
+              {% else %}
+                {{ 'product-apparel-2' | placeholder_svg_tag: 'gift-popup__img gift-popup__placeholder' }}
+              {% endif %}
+            </div>
+
+            <div class="gift-popup__body">
+              <div class="gift-popup__header">
+                <h2 class="gift-popup__title">{{ product.title }}</h2>
+                <p class="gift-popup__price" data-base-price="{{ product.price }}">{{ product.price | money }}</p>
+              </div>
+
+              {% if block.settings.description != blank %}
+                <p class="gift-popup__description">{{ block.settings.description }}</p>
+              {% elsif product.description != blank %}
+                <p class="gift-popup__description">{{ product.description | strip_html | truncate: 160 }}</p>
+              {% else %}
+                <p class="gift-popup__description">{{ placeholder_description }}</p>
+              {% endif %}
+
+              {% form 'product', product, class: 'gift-popup__form', id: 'GiftPopupForm-{{ block.id }}', data-product-id: product.id, data-block-id: block.id %}
+
+                {% assign color_option = nil %}
+                {% assign size_option = nil %}
+
+                {% for option in product.options_with_values %}
+                  {% assign option_name_downcase = option.name | downcase %}
+                  {% if option_name_downcase == 'color' or option_name_downcase == 'colour' %}
+                    {% assign color_option = option %}
+                  {% elsif option_name_downcase == 'size' %}
+                    {% assign size_option = option %}
+                  {% endif %}
+                {% endfor %}
+
+                {% if color_option %}
+                  <fieldset class="gift-popup__option">
+                    <legend class="gift-popup__option-label">{{ color_option.name }}</legend>
+                    <div class="gift-popup__color-swatches">
+                      {% for value in color_option.values %}
+                        {% assign swatch_color = value | downcase %}
+                        <label class="gift-popup__color-label">
+                          <input
+                            type="radio"
+                            name="options[{{ color_option.name | escape }}]"
+                            value="{{ value | escape }}"
+                            {% if forloop.first %}checked{% endif %}
+                            data-option-index="{{ color_option.position | minus: 1 }}"
+                            data-option-name="{{ color_option.name | escape }}"
+                          >
+                          <span
+                            class="gift-popup__color-btn"
+                            style="--swatch-color: {{ swatch_color }};"
+                            title="{{ value | escape }}"
+                          >
+                            {{ value }}
+                          </span>
+                        </label>
+                      {% endfor %}
+                    </div>
+                  </fieldset>
+                {% endif %}
+
+                {% if size_option %}
+                  <div class="gift-popup__option">
+                    <label class="gift-popup__option-label" for="PopupSize-{{ block.id }}">
+                      {{ size_option.name }}
+                    </label>
+                    <select
+                      id="PopupSize-{{ block.id }}"
+                      name="options[{{ size_option.name | escape }}]"
+                      class="gift-popup__size-select"
+                      data-option-index="{{ size_option.position | minus: 1 }}"
+                      data-option-name="{{ size_option.name | escape }}"
+                    >
+                      <option value="" disabled selected>Choose your size</option>
+                      {% for value in size_option.values %}
+                        <option value="{{ value | escape }}">{{ value }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                {% endif %}
+
+                {%- comment -%}
+                  Hidden variant select — options are enriched with data-price for live price updates.
+                  data-options uses " / " as delimiter to match syncVariant() splitting logic.
+                {%- endcomment -%}
+                <select
+                  name="id"
+                  class="gift-popup__variant-select visually-hidden"
+                  aria-hidden="true"
+                  tabindex="-1"
+                >
+                  {% for variant in product.variants %}
+                    <option
+                      value="{{ variant.id }}"
+                      {% if variant.available == false %}disabled{% endif %}
+                      data-options="{{ variant.options | join: ' / ' | escape }}"
+                      data-price="{{ variant.price }}"
+                    >
+                      {{ variant.title }}
+                    </option>
+                  {% endfor %}
+                </select>
+
+                <p class="gift-popup__error" hidden></p>
+
+                <button
+                  type="submit"
+                  class="gift-popup__add-btn"
+                  {% unless product.available %}disabled{% endunless %}
+                >
+                  <span class="gift-popup__add-btn-text">ADD TO CART</span>
+                  <span class="gift-popup__add-btn-spinner" hidden aria-hidden="true"></span>
+                  <span class="gift-popup__arrow" aria-hidden="true">→</span>
+                </button>
+
+              {% endform %}
+            </div>
+
+          {% else %}
+            {%- comment -%} Placeholder popup (no product assigned) {%- endcomment -%}
+            {% assign demo_colors = placeholder_colors[block_index] | default: 'White,Black' | split: ',' %}
+            {% assign demo_default = placeholder_default_color[block_index] | default: '0' | plus: 0 %}
+
+            <div class="gift-popup__media">
+              {{ 'product-apparel-2' | placeholder_svg_tag: 'gift-popup__img gift-popup__placeholder' }}
+            </div>
+
+            <div class="gift-popup__body">
+              <div class="gift-popup__header">
+                <h2 class="gift-popup__title">{{ placeholder_titles[block_index] | default: 'Product title' }}</h2>
+                <p class="gift-popup__price">{{ 98000 | money }}</p>
+              </div>
+              <p class="gift-popup__description">
+                {% if block.settings.description != blank %}
+                  {{ block.settings.description }}
+                {% else %}
+                  {{ placeholder_description }}
+                {% endif %}
+              </p>
+
+              <fieldset class="gift-popup__option">
+                <legend class="gift-popup__option-label">Color</legend>
+                <div class="gift-popup__color-swatches">
+                  {% for color in demo_colors %}
+                    {% assign swatch_color = color | downcase %}
+                    <label class="gift-popup__color-label">
+                      <input
+                        type="radio"
+                        name="demo-color-{{ block.id }}"
+                        value="{{ color }}"
+                        {% if forloop.index0 == demo_default %}checked{% endif %}
+                        disabled
+                      >
+                      <span
+                        class="gift-popup__color-btn"
+                        style="--swatch-color: {{ swatch_color }};"
+                        title="{{ color }}"
+                      >
+                        {{ color }}
+                      </span>
+                    </label>
+                  {% endfor %}
+                </div>
+              </fieldset>
+
+              <div class="gift-popup__option">
+                <label class="gift-popup__option-label" for="DemoSize-{{ block.id }}">Size</label>
+                <select id="DemoSize-{{ block.id }}" class="gift-popup__size-select" disabled>
+                  <option selected>Choose your size</option>
+                </select>
+              </div>
+
+              <button type="button" class="gift-popup__add-btn" disabled>
+                ADD TO CART
+                <span class="gift-popup__arrow" aria-hidden="true">→</span>
+              </button>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
     {% endfor %}
   </div>
 </div>
 
 <script>
   (() => {
+    'use strict';
+
     const section = document.getElementById('GiftProductGrid-{{ section.id }}');
     if (!section) return;
 
-    section.querySelectorAll('.gift-product-card__form').forEach((form) => {
-      const variantSelect = form.querySelector('.gift-product-card__variant-select');
-      const optionInputs = form.querySelectorAll('[data-option-index]');
+    // ─────────────────────────────────────────────
+    // Utility: money formatting (matches Shopify's shop money_format)
+    // Reads from Shopify.money_format if available, else falls back to a
+    // simple cents-to-dollars formatter.
+    // ─────────────────────────────────────────────
+    function formatMoney(cents) {
+      const amount = (parseInt(cents, 10) / 100).toFixed(2);
+      if (window.Shopify && window.Shopify.money_format) {
+        return window.Shopify.money_format.replace('{{amount}}', amount).replace('{{amount_no_decimals}}', Math.round(amount));
+      }
+      return `$${amount}`;
+    }
+
+    // ─────────────────────────────────────────────
+    // Popup open / close
+    // ─────────────────────────────────────────────
+    function closeAllPopups() {
+      section.querySelectorAll('.gift-popup:not([hidden])').forEach((popup) => {
+        popup.hidden = true;
+        document.body.style.overflow = '';
+      });
+    }
+
+    function openPopup(blockId) {
+      closeAllPopups();
+      const popup = document.getElementById(`GiftProductPopup-${blockId}`);
+      if (!popup) return;
+      popup.hidden = false;
+      document.body.style.overflow = 'hidden';
+      // Move focus to the close button for accessibility
+      const closeBtn = popup.querySelector('.gift-popup__close');
+      if (closeBtn) closeBtn.focus();
+    }
+
+    // Open buttons (hotspots on each card)
+    section.querySelectorAll('[data-open-popup]').forEach((btn) => {
+      btn.addEventListener('click', () => openPopup(btn.dataset.openPopup));
+    });
+
+    // Close buttons (× inside each popup, and backdrop clicks)
+    section.querySelectorAll('[data-close-popup]').forEach((el) => {
+      el.addEventListener('click', () => {
+        const popup = el.closest('.gift-popup') || document.getElementById(`GiftProductPopup-${el.dataset.closePopup}`);
+        if (popup) {
+          popup.hidden = true;
+          document.body.style.overflow = '';
+        }
+      });
+    });
+
+    // Escape key closes any open popup
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAllPopups();
+    });
+
+    // ─────────────────────────────────────────────
+    // Variant sync: map selected color + size to correct hidden variant <select>
+    // Updates price display if variant price differs from base price.
+    // ─────────────────────────────────────────────
+    function initVariantSync(form) {
+      const variantSelect = form.querySelector('.gift-popup__variant-select');
+      const priceEl = form.closest('.gift-popup__body')?.querySelector('.gift-popup__price');
       if (!variantSelect) return;
 
-      const syncVariant = () => {
+      // Collect all option inputs: radio buttons (color) and selects (size)
+      function getSelectedValues() {
         const selected = [];
-        optionInputs.forEach((input) => {
-          const index = parseInt(input.dataset.optionIndex, 10);
-          selected[index] = input.value;
+
+        // Radio inputs with data-option-index
+        form.querySelectorAll('input[type="radio"][data-option-index]:checked').forEach((radio) => {
+          const index = parseInt(radio.dataset.optionIndex, 10);
+          selected[index] = radio.value;
         });
 
+        // Select inputs with data-option-index
+        form.querySelectorAll('select[data-option-index]').forEach((sel) => {
+          const index = parseInt(sel.dataset.optionIndex, 10);
+          if (sel.value) selected[index] = sel.value;
+        });
+
+        return selected;
+      }
+
+      function syncVariant() {
+        const selected = getSelectedValues();
+
+        let matched = false;
         for (const option of variantSelect.options) {
-          const variantOptions = option.dataset.options ? option.dataset.options.split(' / ') : [];
+          if (!option.dataset.options) continue;
+          const variantOptions = option.dataset.options.split(' / ');
+          // Every position in selected must match the variant option at that index.
+          // Positions not in selected (undefined) are treated as wildcard.
           const matches = selected.every((value, index) => !value || variantOptions[index] === value);
           if (matches && !option.disabled) {
             variantSelect.value = option.value;
-            return;
+            // Update price display
+            if (priceEl && option.dataset.price) {
+              priceEl.textContent = formatMoney(option.dataset.price);
+            }
+            matched = true;
+            break;
           }
         }
-      };
 
-      optionInputs.forEach((input) => {
+        if (!matched) {
+          // No available variant for this combination — clear selection
+          variantSelect.value = '';
+        }
+      }
+
+      // Attach change listeners to all option inputs
+      form.querySelectorAll('input[data-option-index], select[data-option-index]').forEach((input) => {
         input.addEventListener('change', syncVariant);
       });
 
+      // Run once on init to sync with the default checked/selected state
       syncVariant();
-    });
+    }
 
-    section.querySelectorAll('.gift-product-card__close').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const card = btn.closest('.gift-product-card');
-        if (card) card.style.display = 'none';
+    section.querySelectorAll('.gift-popup__form').forEach(initVariantSync);
+
+    // ─────────────────────────────────────────────
+    // Helper: get selected color value from a form
+    // Matches the radio input that has data-option-name matching "color" or "colour"
+    // ─────────────────────────────────────────────
+    function getSelectedColor(form) {
+      const colorRadio = form.querySelector('input[type="radio"][data-option-name]:checked');
+      if (!colorRadio) return null;
+      const optionName = colorRadio.dataset.optionName?.toLowerCase();
+      if (optionName === 'color' || optionName === 'colour') {
+        return colorRadio.value;
+      }
+      return null;
+    }
+
+    // Helper: get selected size value from a form
+    // Matches the <select> that has data-option-name matching "size"
+    function getSelectedSize(form) {
+      const sizeSelect = form.querySelector('select[data-option-name]');
+      if (!sizeSelect) return null;
+      const optionName = sizeSelect.dataset.optionName?.toLowerCase();
+      if (optionName === 'size') {
+        return sizeSelect.value || null;
+      }
+      return null;
+    }
+
+    // ─────────────────────────────────────────────
+    // Cart drawer: open the theme's existing cart drawer after add
+    // The theme uses <theme-drawer id="cart-drawer"> with a public .open() method.
+    // ─────────────────────────────────────────────
+    function openCartDrawer() {
+      const themeDrawer = document.querySelector('theme-drawer#cart-drawer');
+      if (themeDrawer && typeof themeDrawer.open === 'function') {
+        themeDrawer.open();
+        return;
+      }
+      // Fallback: look for a button with on:click="#cart-drawer/open" attribute
+      const triggerBtn = document.querySelector('[on\\:click="#cart-drawer/open"]');
+      if (triggerBtn) {
+        triggerBtn.click();
+      }
+    }
+
+    // ─────────────────────────────────────────────
+    // Cart count refresh
+    // ─────────────────────────────────────────────
+    async function refreshCartCount() {
+      try {
+        const res = await fetch('/cart.js');
+        const cart = await res.json();
+        document.querySelectorAll('.gift-header__cart-count').forEach((el) => {
+          el.textContent = cart.item_count;
+          el.hidden = cart.item_count === 0;
+        });
+      } catch (err) {
+        console.warn('[gift-guide] Could not refresh cart count:', err);
+      }
+    }
+
+    // ─────────────────────────────────────────────
+    // Ajax Add to Cart with Black + Medium auto-add rule
+    // ─────────────────────────────────────────────
+    async function handleAddToCart(form) {
+      const popup = form.closest('.gift-popup');
+      const submitBtn = form.querySelector('.gift-popup__add-btn');
+      const btnText = form.querySelector('.gift-popup__add-btn-text');
+      const spinner = form.querySelector('.gift-popup__add-btn-spinner');
+      const errorEl = form.querySelector('.gift-popup__error');
+
+      function showError(msg) {
+        if (!errorEl) return;
+        errorEl.textContent = msg;
+        errorEl.hidden = false;
+      }
+
+      function clearError() {
+        if (!errorEl) return;
+        errorEl.textContent = '';
+        errorEl.hidden = true;
+      }
+
+      function setLoading(loading) {
+        submitBtn.disabled = loading;
+        if (btnText) btnText.hidden = loading;
+        if (spinner) spinner.hidden = !loading;
+      }
+
+      clearError();
+      setLoading(true);
+
+      try {
+        const variantSelect = form.querySelector('.gift-popup__variant-select');
+        const variantId = variantSelect ? variantSelect.value : null;
+
+        if (!variantId) {
+          showError('Please select a valid size and color combination.');
+          return;
+        }
+
+        // ── 1. Add the main product variant ──
+        const mainRes = await fetch('/cart/add.js', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: variantId, quantity: 1 }),
+        });
+
+        if (!mainRes.ok) {
+          let errMsg = 'Could not add product to cart.';
+          try {
+            const errData = await mainRes.json();
+            if (errData.description) errMsg = errData.description;
+          } catch (_) {}
+          throw new Error(errMsg);
+        }
+
+        await mainRes.json(); // consume body
+
+        // ── 2. Check Black + Medium rule ──
+        const selectedColor = getSelectedColor(form);
+        const selectedSize = getSelectedSize(form);
+
+        const isBlack = selectedColor && selectedColor.trim().toLowerCase() === 'black';
+        const isMedium = selectedSize && selectedSize.trim().toLowerCase() === 'medium';
+        const isBlackMedium = isBlack && isMedium;
+
+        if (isBlackMedium) {
+          try {
+            // Fetch Soft Winter Jacket by handle. NOTE: verify this handle in Shopify admin.
+            // The handle is derived from the product title; it may be "soft-winter-jacket"
+            // or similar. If this returns 404, the product either doesn't exist or has a
+            // different handle — check the product URL in admin and update accordingly.
+            const jacketRes = await fetch('/products/soft-winter-jacket.js');
+            if (jacketRes.ok) {
+              const jacketProduct = await jacketRes.json();
+
+              // Find a Black + Medium available variant first
+              let jacketVariant = jacketProduct.variants.find((v) => {
+                if (!v.available) return false;
+                return (
+                  v.options.some((o) => o.trim().toLowerCase() === 'black') &&
+                  v.options.some((o) => o.trim().toLowerCase() === 'medium')
+                );
+              });
+
+              // Fall back to first available variant, then absolute first
+              if (!jacketVariant) {
+                jacketVariant = jacketProduct.variants.find((v) => v.available) || jacketProduct.variants[0];
+              }
+
+              if (jacketVariant) {
+                await fetch('/cart/add.js', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ id: jacketVariant.id, quantity: 1 }),
+                });
+              }
+            } else if (jacketRes.status === 404) {
+              console.warn('[gift-guide] Soft Winter Jacket not found at /products/soft-winter-jacket.js — check the product handle in Shopify admin.');
+            }
+          } catch (jacketErr) {
+            // Non-blocking: log but don't fail the main add-to-cart
+            console.error('[gift-guide] Black+Medium auto-add failed:', jacketErr);
+          }
+        }
+
+        // ── 3. Refresh cart count ──
+        await refreshCartCount();
+
+        // ── 4. Open the theme cart drawer ──
+        openCartDrawer();
+
+        // ── 5. Close the popup with a brief success state ──
+        if (btnText) btnText.textContent = '✓ Added!';
+        if (btnText) btnText.hidden = false;
+        if (spinner) spinner.hidden = true;
+        submitBtn.disabled = false;
+
+        setTimeout(() => {
+          if (popup) {
+            popup.hidden = true;
+            document.body.style.overflow = '';
+          }
+          // Reset button text
+          if (btnText) btnText.textContent = 'ADD TO CART';
+        }, 900);
+
+      } catch (err) {
+        console.error('[gift-guide] Add to cart error:', err);
+        showError(err.message || 'Something went wrong. Please try again.');
+        setLoading(false);
+      }
+    }
+
+    // Wire up form submit listeners
+    section.querySelectorAll('.gift-popup__form').forEach((form) => {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleAddToCart(form);
       });
     });
+
   })();
 </script>
 
 {% stylesheet %}
+  /* ─────────────────────────────────────────
+     Grid wrapper
+  ───────────────────────────────────────── */
   .gift-product-grid {
     background: #fff;
     padding: 24px 16px 40px;
@@ -242,192 +611,6 @@
     margin: 0 auto;
   }
 
-  .gift-product-card {
-    position: relative;
-    border: 1px solid #e8e8e8;
-    background: #fff;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .gift-product-card__close {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    z-index: 2;
-    width: 28px;
-    height: 28px;
-    border: none;
-    background: transparent;
-    font-size: 1.25rem;
-    line-height: 1;
-    color: #999;
-    cursor: pointer;
-    padding: 0;
-  }
-
-  .gift-product-card__close:hover {
-    color: #333;
-  }
-
-  .gift-product-card__media {
-    aspect-ratio: 1;
-    overflow: hidden;
-    background: #f7f7f7;
-  }
-
-  .gift-product-card__media img,
-  .gift-product-card__placeholder {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  .gift-product-card__body {
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    flex: 1;
-  }
-
-  .gift-product-card__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .gift-product-card__title {
-    margin: 0;
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: 0.8125rem;
-    font-weight: 400;
-    line-height: 1.3;
-  }
-
-  .gift-product-card__price {
-    margin: 0;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-
-  .gift-product-card__description {
-    margin: 0;
-    font-size: 0.6875rem;
-    line-height: 1.5;
-    color: #666;
-  }
-
-  .gift-product-card__option {
-    border: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .gift-product-card__option-label {
-    display: block;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    margin-bottom: 6px;
-    letter-spacing: 0.02em;
-  }
-
-  .gift-product-card__color-swatches {
-    display: flex;
-    gap: 0;
-    border: 1px solid #ddd;
-  }
-
-  .gift-product-card__color-label {
-    flex: 1;
-    cursor: pointer;
-  }
-
-  .gift-product-card__color-label input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .gift-product-card__color-btn {
-    display: block;
-    padding: 8px 10px;
-    font-size: 0.6875rem;
-    text-align: center;
-    border-right: 1px solid #ddd;
-    position: relative;
-  }
-
-  .gift-product-card__color-label:last-child .gift-product-card__color-btn {
-    border-right: none;
-  }
-
-  .gift-product-card__color-label input:checked + .gift-product-card__color-btn::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: var(--swatch-color, #333);
-  }
-
-  .gift-product-card__size-select {
-    width: 100%;
-    padding: 10px 12px;
-    font-size: 0.75rem;
-    border: 1px solid #ddd;
-    background: #fff;
-    appearance: auto;
-    color: #666;
-  }
-
-  .gift-product-card__add-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    margin-top: auto;
-    padding: 12px;
-    border: none;
-    background: #1a1a1a;
-    color: #fff;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    cursor: pointer;
-    transition: opacity 0.2s ease;
-  }
-
-  .gift-product-card__add-btn:hover:not(:disabled) {
-    opacity: 0.85;
-  }
-
-  .gift-product-card__add-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .gift-product-card__arrow {
-    font-size: 0.875rem;
-  }
-
-  .visually-hidden {
-    position: absolute !important;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-
   @media screen and (min-width: 750px) {
     .gift-product-grid {
       padding: 32px 40px 48px;
@@ -437,19 +620,415 @@
       grid-template-columns: repeat(3, 1fr);
       gap: 16px;
     }
+  }
 
-    .gift-product-card__body {
-      padding: 16px;
+  /* ─────────────────────────────────────────
+     Grid card — image + hotspot only
+  ───────────────────────────────────────── */
+  .gift-product-card {
+    position: relative;
+    background: #f7f7f7;
+    overflow: hidden;
+    aspect-ratio: 1;
+    cursor: pointer;
+  }
+
+  .gift-product-card:hover .gift-product-card__img {
+    transform: scale(1.04);
+  }
+
+  .gift-product-card__media {
+    width: 100%;
+    height: 100%;
+  }
+
+  .gift-product-card__img,
+  .gift-product-card__placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.35s ease;
+  }
+
+  /* ─────────────────────────────────────────
+     Hotspot "+" button (bottom-right of card)
+  ───────────────────────────────────────── */
+  .gift-product-card__hotspot {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: #fff;
+    color: #1a1a1a;
+    font-size: 1.375rem;
+    font-weight: 300;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgb(0 0 0 / 18%);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    padding: 0;
+    z-index: 2;
+  }
+
+  .gift-product-card__hotspot:hover,
+  .gift-product-card__hotspot:focus-visible {
+    transform: scale(1.12);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 22%);
+    outline: none;
+  }
+
+  @media screen and (min-width: 750px) {
+    .gift-product-card__hotspot {
+      bottom: 16px;
+      right: 16px;
+    }
+  }
+
+  /* ─────────────────────────────────────────
+     Popup / Modal
+     Mobile (<750px): full-screen overlay
+     Desktop: centered dialog with backdrop
+  ───────────────────────────────────────── */
+  .gift-popup[hidden] {
+    display: none;
+  }
+
+  .gift-popup:not([hidden]) {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    display: flex;
+    align-items: flex-end;   /* bottom-sheet on mobile */
+    justify-content: center;
+  }
+
+  .gift-popup__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgb(0 0 0 / 50%);
+    cursor: pointer;
+  }
+
+  .gift-popup__panel {
+    position: relative;
+    width: 100%;
+    max-height: 92dvh;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    border-radius: 16px 16px 0 0;
+    animation: gift-popup-slide-up 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  @keyframes gift-popup-slide-up {
+    from { transform: translateY(40px); opacity: 0; }
+    to   { transform: translateY(0);   opacity: 1; }
+  }
+
+  /* Desktop: centered dialog card */
+  @media screen and (min-width: 750px) {
+    .gift-popup:not([hidden]) {
+      align-items: center;
     }
 
-    .gift-product-card__title,
-    .gift-product-card__price {
-      font-size: 0.875rem;
+    .gift-popup__panel {
+      width: min(90vw, 840px);
+      max-height: 88dvh;
+      border-radius: 4px;
+      flex-direction: row;
+      align-items: stretch;
+      animation: gift-popup-fade-in 0.22s ease;
     }
 
-    .gift-product-card__description {
-      font-size: 0.75rem;
+    @keyframes gift-popup-fade-in {
+      from { opacity: 0; transform: scale(0.97); }
+      to   { opacity: 1; transform: scale(1); }
     }
+  }
+
+  /* ─────────────────────────────────────────
+     Popup close button
+  ───────────────────────────────────────── */
+  .gift-popup__close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid #e8e8e8;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    color: #333;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+
+  .gift-popup__close:hover,
+  .gift-popup__close:focus-visible {
+    background: #f5f5f5;
+    transform: scale(1.05);
+    outline: none;
+  }
+
+  /* ─────────────────────────────────────────
+     Popup media (left pane on desktop)
+  ───────────────────────────────────────── */
+  .gift-popup__media {
+    flex-shrink: 0;
+    background: #f7f7f7;
+    aspect-ratio: 1;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .gift-popup__img,
+  .gift-popup__placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  @media screen and (min-width: 750px) {
+    .gift-popup__media {
+      width: 50%;
+      aspect-ratio: auto;
+      min-height: 400px;
+    }
+  }
+
+  /* ─────────────────────────────────────────
+     Popup body (right pane on desktop)
+  ───────────────────────────────────────── */
+  .gift-popup__body {
+    padding: 20px 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1;
+  }
+
+  @media screen and (min-width: 750px) {
+    .gift-popup__body {
+      padding: 36px 32px;
+      overflow-y: auto;
+    }
+  }
+
+  /* ─────────────────────────────────────────
+     Popup content elements
+  ───────────────────────────────────────── */
+  .gift-popup__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .gift-popup__title {
+    margin: 0;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
+    font-weight: 400;
+    line-height: 1.25;
+  }
+
+  .gift-popup__price {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .gift-popup__description {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: #555;
+  }
+
+  /* ─────────────────────────────────────────
+     Options: color swatches + size select
+  ───────────────────────────────────────── */
+  .gift-popup__option {
+    border: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .gift-popup__option-label {
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+    color: #1a1a1a;
+  }
+
+  .gift-popup__color-swatches {
+    display: flex;
+    gap: 0;
+    border: 1px solid #e0e0e0;
+  }
+
+  .gift-popup__color-label {
+    flex: 1;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .gift-popup__color-label input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .gift-popup__color-btn {
+    display: block;
+    padding: 9px 12px;
+    font-size: 0.6875rem;
+    text-align: center;
+    border-right: 1px solid #e0e0e0;
+    position: relative;
+    transition: background 0.15s ease;
+  }
+
+  .gift-popup__color-label:last-child .gift-popup__color-btn {
+    border-right: none;
+  }
+
+  .gift-popup__color-label input:checked + .gift-popup__color-btn {
+    background: #f5f5f5;
+  }
+
+  .gift-popup__color-label input:checked + .gift-popup__color-btn::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--swatch-color, #1a1a1a);
+  }
+
+  .gift-popup__size-select {
+    width: 100%;
+    padding: 11px 14px;
+    font-size: 0.8125rem;
+    border: 1px solid #e0e0e0;
+    background: #fff;
+    appearance: auto;
+    color: #333;
+    border-radius: 0;
+    cursor: pointer;
+  }
+
+  .gift-popup__size-select:focus {
+    outline: 2px solid #1a1a1a;
+    outline-offset: 0;
+  }
+
+  /* ─────────────────────────────────────────
+     Error message
+  ───────────────────────────────────────── */
+  .gift-popup__error {
+    margin: 0;
+    padding: 10px 12px;
+    background: #fff2f2;
+    border: 1px solid #f5c6c6;
+    border-radius: 2px;
+    font-size: 0.8125rem;
+    color: #c0392b;
+    line-height: 1.4;
+  }
+
+  .gift-popup__error[hidden] {
+    display: none;
+  }
+
+  /* ─────────────────────────────────────────
+     Add to cart button + spinner
+  ───────────────────────────────────────── */
+  .gift-popup__add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: auto;
+    padding: 14px;
+    min-height: 48px;
+    border: none;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+    border-radius: 0;
+  }
+
+  .gift-popup__add-btn:hover:not(:disabled) {
+    opacity: 0.85;
+  }
+
+  .gift-popup__add-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .gift-popup__arrow {
+    font-size: 1rem;
+  }
+
+  /* Spinner (CSS-only ring) */
+  .gift-popup__add-btn-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: gift-spin 0.7s linear infinite;
+  }
+
+  .gift-popup__add-btn-spinner[hidden] {
+    display: none;
+  }
+
+  @keyframes gift-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ─────────────────────────────────────────
+     Visually hidden utility (for hidden variant select)
+  ───────────────────────────────────────── */
+  .gift-product-grid .visually-hidden {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 {% endstylesheet %}
 
