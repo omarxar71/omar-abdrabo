@@ -5,9 +5,11 @@
       "type": "gift-guide-header",
       "settings": {
         "logo_text": "Tisso Vison",
+        "logo_link": "",
         "promo_text": "Find the ideal gift for your loved ones.",
         "button_text": "Choose gift",
         "button_link": "",
+        "menu": "",
         "show_search": true
       }
     },
@@ -19,6 +21,7 @@
         "description": "<p>Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gift to delight your loved ones this holiday season.</p>",
         "button_text": "Shop now",
         "button_link": "",
+        "background_image": "shopify://shop_images/Frame.png",
         "bottom_bar_text": "Sustainable, ethically made activewear"
       }
     },
@@ -27,27 +30,45 @@
       "blocks": {
         "product_1": {
           "type": "product",
-          "settings": {}
+          "settings": {
+            "product": "ocean-blue-shirt",
+            "description": ""
+          }
         },
         "product_2": {
           "type": "product",
-          "settings": {}
+          "settings": {
+            "product": "classic-varsity-top",
+            "description": ""
+          }
         },
         "product_3": {
           "type": "product",
-          "settings": {}
+          "settings": {
+            "product": "yellow-wool-jumper",
+            "description": ""
+          }
         },
         "product_4": {
           "type": "product",
-          "settings": {}
+          "settings": {
+            "product": "floral-white-top",
+            "description": ""
+          }
         },
         "product_5": {
           "type": "product",
-          "settings": {}
+          "settings": {
+            "product": "striped-silk-blouse",
+            "description": ""
+          }
         },
         "product_6": {
           "type": "product",
-          "settings": {}
+          "settings": {
+            "product": "classic-leather-jacket",
+            "description": ""
+          }
         }
       },
       "block_order": [
