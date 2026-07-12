@@ -30,6 +30,7 @@
         "description": "<p>Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gift to delight your loved ones this holiday season.</p>",
         "button_text": "Shop now",
         "button_link": "",
+        "background_image": "shopify://shop_images/Frame.png",
         "bottom_bar_text": "Sustainable, ethically made activewear"
       }
     },
