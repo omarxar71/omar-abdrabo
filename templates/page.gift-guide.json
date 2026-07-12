@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "layout": "theme.gift-guide",
   "sections": {
@@ -5,9 +14,11 @@
       "type": "gift-guide-header",
       "settings": {
         "logo_text": "Tisso Vison",
+        "logo_link": "",
         "promo_text": "Find the ideal gift for your loved ones.",
         "button_text": "Choose gift",
         "button_link": "",
+        "menu": "",
         "show_search": true
       }
     },
@@ -25,12 +36,48 @@
     "gift_products": {
       "type": "gift-product-grid",
       "blocks": {
-        "product_1": { "type": "product", "settings": {} },
-        "product_2": { "type": "product", "settings": {} },
-        "product_3": { "type": "product", "settings": {} },
-        "product_4": { "type": "product", "settings": {} },
-        "product_5": { "type": "product", "settings": {} },
-        "product_6": { "type": "product", "settings": {} }
+        "product_1": {
+          "type": "product",
+          "settings": {
+            "product": "ocean-blue-shirt",
+            "description": ""
+          }
+        },
+        "product_2": {
+          "type": "product",
+          "settings": {
+            "product": "classic-varsity-top",
+            "description": ""
+          }
+        },
+        "product_3": {
+          "type": "product",
+          "settings": {
+            "product": "yellow-wool-jumper",
+            "description": ""
+          }
+        },
+        "product_4": {
+          "type": "product",
+          "settings": {
+            "product": "floral-white-top",
+            "description": ""
+          }
+        },
+        "product_5": {
+          "type": "product",
+          "settings": {
+            "product": "striped-silk-blouse",
+            "description": ""
+          }
+        },
+        "product_6": {
+          "type": "product",
+          "settings": {
+            "product": "classic-leather-jacket",
+            "description": ""
+          }
+        }
       },
       "block_order": [
         "product_1",
